@@ -4,6 +4,7 @@ import simplejson
 import re
 
 def search(request, search_term):
+    search_term = search_term.lower()
     entries = Entry.objects.filter(esearch=search_term)
     closest_search_term = search_term
     if len(entries) == 0:
