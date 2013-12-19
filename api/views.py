@@ -14,6 +14,7 @@ def search(request, search_term):
         p2 = re.compile('([a-zA-Z]+?)(ss\Z)') # ends with ss
         p3 = re.compile('([a-zA-Z]+?)(s\Z)') # ends with s
         p4 = re.compile('([a-zA-Z]+?)(ed\Z)') # ends with ed
+        p5 = re.compile('([a-zA-Z]+?)(ing\Z)') # ends with ing
         if len(p1.findall(search_term)) > 0:
             closest_search_term = p1.findall(search_term)[0][0]
             entries = Entry.objects.filter(esearch=closest_search_term)
@@ -35,7 +36,20 @@ def search(request, search_term):
                     closest_search_term = entry.esearch
                 elif len(entry.esearch) == entryLength:
                     tempEntries.append(entry)
-
+            entries = tempEntries
+        if len(entries) == 0 and len(p5.findall(search_term)) > 0:
+            entries = Entry.objects.filter(Q(esearch=search_term[:len(search_term)-3]) | Q(esearch=search_term[:len(search_term)-4]) | Q(esearch=search_term[:len(search_term) - 3] + "e"))
+            entryLength = 0
+            tempEntries = []
+            # take longest search term as the correct one
+            for entry in entries:
+                if len(entry.esearch) > entryLength:
+                    tempEntries = []
+                    tempEntries.append(entry)
+                    entryLength = len(entry.esearch)
+                    closest_search_term = entry.esearch
+                elif len(entry.esearch) == entryLength:
+                    tempEntries.append(entry)
             entries = tempEntries
 
     found = True if len(entries) > 0 else False
